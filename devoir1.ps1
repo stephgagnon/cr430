@@ -82,7 +82,8 @@ ForEach ($VMName in $VMNames) {
         Get-CimInstance -ClassName Win32_OperatingSystem
     } -Session $VMSession
 
-    $OSinfoHTML = $OSinfo | ConvertTo-Html -Property Version,Caption,BuildNumber -Fragment -PreContent "<h2>Operating System Information</h2>"
+    $UptimeFilter = @{Label='Uptime';Expression={((Get-Date) - $_.LastBootUpTime).ToString("hh\:mm\:ss")}}
+    $OSinfoHTML = $OSinfo | ConvertTo-Html -Property Version,Caption,BuildNumber,$UptimeFilter -Fragment -PreContent "<h2>Operating System Information</h2>"
     $ReportSections += $OSinfoHTML
 
     # Obtenir les informations du processeur, convertir le résultat en code HTML dans une table et le stocker dans une variable
