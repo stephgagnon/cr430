@@ -22,39 +22,13 @@ function Get-FormattedFileSize
     }
 }
 
-# Faciliter la création d'un objet PSCredential
-
-function Get-PSCredential
-{
-    [CmdletBinding()]
-	param(
-        [Parameter(Mandatory=$true,Position=0)]
-        [string] $UserName,
-        [string] $Password
-    )
-
-    if ([string]::IsNullOrEmpty($Password)) {
-    	$Credential = Get-Credential -UserName $UserName
-    	if ($PSEdition -eq 'Desktop') {
-	        $bstr = [System.Runtime.InteropServices.Marshal]::SecureStringToBSTR($SecureString)
-	        $Password = [System.Runtime.InteropServices.Marshal]::PtrToStringAuto($bstr)
-	    } else {
-	        $Password = ConvertFrom-SecureString -SecureString $SecureString -AsPlainText
-	    }
-    } else {
-	    $SecurePassword = ConvertTo-SecureString $Password -AsPlainText -Force
-		$Credential = New-Object System.Management.Automation.PSCredential @($UserName, $SecurePassword)
-    }
-
-    $Credential
-}
-
 # Définitions pour le PowerShell à distance
 
 $VMNames = @("IT-HELP-DC","IT-HELP-GW","IT-HELP-DVLS","IT-HELP-WAC")
-$UserName = "IT-HELP\Administrator"
-#$Password = "DevoLabs123!"
-#$Credential = Get-PSCredential -UserName $UserName -Password $Password
+# $UserName = "IT-HELP\Administrator"
+# $Password = "DevoLabs123!"
+# $SecurePassword = ConvertTo-SecureString $Password -AsPlainText -Force
+# $Credential = New-Object System.Management.Automation.PSCredential @($UserName, $SecurePassword)
 
 # Création du rapport
 
@@ -64,7 +38,7 @@ ForEach ($VMName in $VMNames) {
     if($Credential){
         $VMSession = New-PSSession -VMName $VMName -Credential $Credential
     } else {
-        $VMSession = New-PSSession $VMName    
+        $VMSession = New-PSSession $VMName
     }
     
     # Obtenir le nom de la machine
@@ -81,7 +55,6 @@ ForEach ($VMName in $VMNames) {
     $OSinfo = Invoke-Command -ScriptBlock {
         Get-CimInstance -ClassName Win32_OperatingSystem
     } -Session $VMSession
-
     $UptimeFilter = @{Label='Uptime';Expression={((Get-Date) - $_.LastBootUpTime).ToString("hh\:mm\:ss")}}
     $OSinfoHTML = $OSinfo | ConvertTo-Html -Property Version,Caption,BuildNumber,$UptimeFilter -Fragment -PreContent "<h2>Operating System Information</h2>"
     $ReportSections += $OSinfoHTML
@@ -114,4 +87,5 @@ $ReportBody = $ReportSections | Join-String -Separator " "
 $Report = ConvertTo-HTML -Body $ReportBody -Title "Computer Information Report" -PostContent "<p><b>Date:<b> $((Get-Date).ToString("dd-MM-yyyy"))<p>"
 
 # Générer le rapport en un fichier HTML
+
 $Report | Out-File .\ComputerReport.html
