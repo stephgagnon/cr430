@@ -24,7 +24,7 @@ function Get-FormattedFileSize
 
 # Définitions pour le PowerShell à distance
 
-$VMNames = Get-ADComputer -Filter * -Properties Name,LastLogonDate | Select-Object -ExpandProperty Name
+$VMNames = Get-ADComputer -Filter * -Properties Name,LastLogonDate | Where-Object {$_.Enabled} | Select-Object -ExpandProperty Name
 
 # Création du rapport
 
