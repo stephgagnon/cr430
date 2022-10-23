@@ -24,22 +24,14 @@ function Get-FormattedFileSize
 
 # Définitions pour le PowerShell à distance
 
-$VMNames = @("IT-HELP-DC","IT-HELP-GW","IT-HELP-DVLS","IT-HELP-WAC")
-# $UserName = "IT-HELP\Administrator"
-# $Password = "DevoLabs123!"
-# $SecurePassword = ConvertTo-SecureString $Password -AsPlainText -Force
-# $Credential = New-Object System.Management.Automation.PSCredential @($UserName, $SecurePassword)
+$VMNames = Get-ADComputer -Filter * -Properties Name,LastLogonDate | Select-Object -ExpandProperty Name
 
 # Création du rapport
 
 $ReportSections = @()
 
 ForEach ($VMName in $VMNames) {
-    if($Credential){
-        $VMSession = New-PSSession -VMName $VMName -Credential $Credential
-    } else {
-        $VMSession = New-PSSession $VMName
-    }
+    $VMSession = New-PSSession $VMName
     
     # Obtenir le nom de la machine
     $NameInfo = Invoke-Command -ScriptBlock {
@@ -47,6 +39,7 @@ ForEach ($VMName in $VMNames) {
             ComputerName = $env:computername
         }
     } -Session $VMSession
+
     $NameInfoHTML = "<h1>Computer name: $($NameInfo.ComputerName)</h1>"
     $ReportSections += $NameInfoHTML
 
@@ -55,6 +48,7 @@ ForEach ($VMName in $VMNames) {
     $OSinfo = Invoke-Command -ScriptBlock {
         Get-CimInstance -ClassName Win32_OperatingSystem
     } -Session $VMSession
+
     $UptimeFilter = @{Label='Uptime';Expression={((Get-Date) - $_.LastBootUpTime).ToString("hh\:mm\:ss")}}
     $OSinfoHTML = $OSinfo | ConvertTo-Html -Property Version,Caption,BuildNumber,$UptimeFilter -Fragment -PreContent "<h2>Operating System Information</h2>"
     $ReportSections += $OSinfoHTML
