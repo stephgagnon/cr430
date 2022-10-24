@@ -78,10 +78,11 @@ ForEach ($vmName in $vmNames) {
 # Toutes les informations sont rassemblées dans un seul rapport HTML, incluant la date de création du rapport
 
 $reportSections += "<h2>Offline Computers: $($offlineVMs | Join-String -Separator ", ")</h2>"
+
 $reportBody = $reportSections | Join-String -Separator " "
 $report = ConvertTo-HTML -Body $reportBody -Title "Computer Information Report" -PostContent "<p><b>Date:<b> $((Get-Date).ToString("dd-MM-yyyy"))<p>"
 
 # Générer le rapport en un fichier HTML
 
-$reportName = "ComputerReport_" + (Get-Date -Format "ddMMyyyyy") + ".html"
+$reportName = "ComputerReport_" + (Get-Date -Format "ddMMyyyy") + ".html"
 $report | Out-File .\$reportName
