@@ -82,5 +82,6 @@ $reportBody = $reportSections | Join-String -Separator " "
 $report = ConvertTo-HTML -Body $reportBody -Title "Computer Information Report" -PostContent "<p><b>Date:<b> $((Get-Date).ToString("dd-MM-yyyy"))<p>"
 
 # Générer le rapport en un fichier HTML
+
 $reportName = "ComputerReport_" + (Get-Date -Format "ddMMyyyyy") + ".html"
 $report | Out-File .\$reportName
